@@ -23,6 +23,7 @@ public:
     void resized() override;
 
 private:
+    const StringArray MIDI_CHANNEL_LIST = StringArray::fromTokens("1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16", false);
     Utils utils;
     int lfoRateSliderValue, cutoffSliderValue;
     int midiInChannel = 0, midiOutChannel = 0;
@@ -35,7 +36,8 @@ private:
     void initializeMidiChannelChooser();
     void initializeLfoRateSlider();
     void initializeCutoffFrequencySlider();
-    
+    void sendCutoffToDevice(int);
+    void sendLfoRateToDevice(int);
     void handleNewSliderValue (int, int) override;
     void timerCallback() override;
 

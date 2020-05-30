@@ -187,5 +187,3 @@ void MoogVoyagerAudioProcessor::addMessageToBuffer (const MidiMessage& message)
     auto sampleNumber =  (int) (timestamp * sampleRate);
     midiOutputMessages.addEvent (message, sampleNumber);
 }
-
-
