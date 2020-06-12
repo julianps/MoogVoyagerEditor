@@ -2,17 +2,23 @@
 #include "PluginEditor.h"
 
 MoogVoyagerAudioProcessor::MoogVoyagerAudioProcessor()
-#ifndef JucePlugin_PreferredChannelConfigurations
-     : AudioProcessor (BusesProperties()
-                     #if ! JucePlugin_IsMidiEffect
-                      #if ! JucePlugin_IsSynth
-                       .withInput  ("Input",  AudioChannelSet::stereo(), true)
-                      #endif
-                       .withOutput ("Output", AudioChannelSet::stereo(), true)
-                     #endif
-                       ), startTime (Time::getMillisecondCounterHiRes() * 0.001)
-#endif
+    : AudioProcessor (BusesProperties()),
+    startTime (Time::getMillisecondCounterHiRes() * 0.001),
+    valueTreeState(*this,
+                   &undoManager,
+                   "PARAMETERS",
+                   {
+                        std::make_unique<AudioParameterInt> (MyParameters::lfoRate_Id,
+                                                             MyParameters::lfoRate_Name,
+                                                             0,
+                                                             16384,
+                                                             1)
+                   }
+    ),
+    parameters(valueTreeState)
 {
+    parameters.createAllParameters();
+    valueTreeState.state = ValueTree(Identifier(JucePlugin_Name));
 }
 
 MoogVoyagerAudioProcessor::~MoogVoyagerAudioProcessor()
@@ -131,6 +137,9 @@ void MoogVoyagerAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBu
             sliderListeners.call ([=] (SliderListener& l){
                 l.handleNewSliderValue(m.getControllerNumber(), m.getControllerValue());
             });
+            parameterListeners.call([=] (ParameterListener& l){
+                l.handleNewParameterValue(m.getControllerNumber(), m.getControllerValue());
+            });
         }
     }
     
@@ -165,11 +174,6 @@ AudioProcessor* JUCE_CALLTYPE createPluginFilter()
     return new MoogVoyagerAudioProcessor();
 }
 
-void MoogVoyagerAudioProcessor::sendMidiCCMessage(int controllerNumber, int value)
-{
-    auto message = MidiMessage::controllerEvent(midiOutChannel, controllerNumber, value);
-    addMessageToBuffer(message);
-}
 
 void MoogVoyagerAudioProcessor::setMidiInChannel(int channelNumber)
 {
@@ -187,3 +191,10 @@ void MoogVoyagerAudioProcessor::addMessageToBuffer (const MidiMessage& message)
     auto sampleNumber =  (int) (timestamp * sampleRate);
     midiOutputMessages.addEvent (message, sampleNumber);
 }
+
+void MoogVoyagerAudioProcessor::sendMidiCCMessage(int controllerNumber, int value)
+{
+    auto message = MidiMessage::controllerEvent(midiOutChannel, controllerNumber, value);
+    addMessageToBuffer(message);
+}
+

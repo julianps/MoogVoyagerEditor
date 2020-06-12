@@ -1,6 +1,8 @@
 #pragma once
 
 #include <JuceHeader.h>
+#include "MyParameters.h"
+#include "MoogVoyagerConstants.h"
 
 class MoogVoyagerAudioProcessor  : public AudioProcessor
 {
@@ -12,6 +14,7 @@ private:
     int previousSampleNumber = 0;
 
 public:
+
     MoogVoyagerAudioProcessor();
     ~MoogVoyagerAudioProcessor();
 
@@ -50,6 +53,15 @@ public:
     };
     void addSliderListener    (SliderListener& listener) { sliderListeners.add    (&listener); }
     void removeSliderListener (SliderListener& listener) { sliderListeners.remove (&listener); }
+
+    struct ParameterListener
+    {
+        virtual ~ParameterListener() {}
+        virtual void handleNewParameterValue (int, int) = 0;
+    };
+    void addParameterListener    (ParameterListener& listener) { parameterListeners.add    (&listener); }
+    void removeParameterListener (ParameterListener& listener) { parameterListeners.remove (&listener); }
+
     
     void sendMidiCCMessage(int controllerNumber, int value);
     void addMessageToBuffer (const MidiMessage& message);
@@ -59,7 +71,17 @@ public:
     
 private:
     ListenerList<SliderListener> sliderListeners;
+    ListenerList<ParameterListener> parameterListeners;
+
     MidiBuffer midiOutputMessages;
+    
+    
+public:
+    // Plugin's AudioProcessorValueTreeState, and its associated UndoManager
+    AudioProcessorValueTreeState valueTreeState;
+    UndoManager undoManager;
+    MyParameters parameters;
+
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MoogVoyagerAudioProcessor)
 };

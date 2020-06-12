@@ -1,20 +1,18 @@
-//  Utils.h
-//  Created by Julian Stücker on 22.05.20.
-//  Copyright © 2020 jps. All rights reserved.
-#include <JuceHeader.h>
+#pragma once
 
 #ifndef Utils_h
 #define Utils_h
 
-class Utils
+struct Utils
 {
 public:
-    // Const values ------
+// Const values ------
     static const int DEFAULT_BYTE_SIZE = 128;
     static const int MIDI_CC_MIN_VALUE = 0;
     static const int MIDI_CC_MAX_VALUE = 16384;
+    static const int MIDI_CC_DEFAULT_STEP_SIZE = 1;
 
-    // helper functions -----
+// midi helper functions -----
     static uint8 toMsb(int value)
     {
         if(value <= 0)
@@ -38,6 +36,11 @@ public:
             return value % 128;
         }
     };
+    
+    static uint8 toDecimal(int MSB, int LSB)
+    {
+            return MSB * DEFAULT_BYTE_SIZE + LSB;
+    };
 };
 
-#endif /* Utils_h */
+#endif
